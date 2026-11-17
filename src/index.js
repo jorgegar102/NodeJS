@@ -18,22 +18,23 @@ const db = new sqlite3.Database(dbPath, (err) => {
 // Middleware para leer los datos del formulario enviados por POST
 app.use(express.urlencoded({ extended: true }));
 
-// Integración de las rutas del panel de administración
-app.use(adminRoutes);
+// IMPORTANTE: Servir archivos estáticos (para que se vean las fotos subidas en la carpeta public)
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Ruta GET para mostrar el formulario directamente en el navegador
+// --- 1. PARTE DEL LOGIN ---
 app.get('/', (req, res) => {
   res.send(`
-    <form action="/login" method="POST">
-      <h2>Iniciar Sesión</h2>
-      <input type="text" name="usuario" placeholder="Usuario o Correo" required><br><br>
-      <input type="password" name="password" placeholder="Contraseña" required><br><br>
-      <button type="submit">Entrar</button>
-    </form>
+    <div style="font-family: Arial; margin: 40px;">
+      <form action="/login" method="POST">
+        <h2>Iniciar Sesión</h2>
+        <input type="text" name="usuario" placeholder="Usuario o Correo" required style="padding: 8px;"><br><br>
+        <input type="password" name="password" placeholder="Contraseña" required style="padding: 8px;"><br><br>
+        <button type="submit" style="padding: 8px 15px; background: #007bff; color: white; border: none; cursor: pointer;">Entrar</button>
+      </form>
+    </div>
   `);
 });
 
-// Ruta POST para procesar las credenciales
 app.post('/login', (req, res) => {
   const { usuario, password } = req.body;
   
@@ -48,22 +49,31 @@ app.post('/login', (req, res) => {
 
     if (row) {
       res.send(`
-        <h1>¡Acceso concedido!</h1>
-        <p>Bienvenido, <strong>${row.nombre}</strong> (Rol: ${row.rol})</p>
-        ${row.rol === 'admin' ? '<p><a href="/admin">Ir al panel de administración</a></p>' : ''}
-        <br>
-        <a href="/">Cerrar sesión</a>
+        <div style="font-family: Arial; margin: 40px;">
+          <h1>¡Acceso concedido!</h1>
+          <p>Bienvenido, <strong>${row.nombre}</strong> (Rol: ${row.rol})</p>
+          ${row.rol === 'admin' ? '<p><a href="/admin">Ir al panel de administración</a></p>' : ''}
+          <br>
+          <a href="/">Cerrar sesión</a>
+        </div>
       `);
     } else {
       res.send(`
-        <h1>Usuario o contraseña incorrectos</h1>
-        <br>
-        <a href="/">Volver a intentar</a>
+        <div style="font-family: Arial; margin: 40px;">
+          <h1>Usuario o contraseña incorrectos</h1>
+          <br>
+          <a href="/">Volver a intentar</a>
+        </div>
       `);
     }
   });
 });
 
+// --- 2. CONECTAR EL PANEL DE ADMINISTRADOR ---
+// Aquí montamos el módulo de admin bajo la ruta '/admin'
+app.use('/admin', adminRoutes);
+
+// Iniciar el servidor en el puerto 3000
 app.listen(3000, () => {
-  console.log('Servidor iniciado en el puerto 3000');
+  console.log('Servidor iniciado en http://localhost:3000');
 });
