@@ -14,14 +14,9 @@ const db = new sqlite3.Database(dbPath, (err) => {
     console.log('Conectado a la base de datos Database.db');
   }
 });
-
-// Middleware para leer los datos del formulario enviados por POST
 app.use(express.urlencoded({ extended: true }));
-
-// Integración de las rutas del panel de administración
 app.use(adminRoutes);
 
-// Ruta GET para mostrar el formulario directamente en el navegador
 app.get('/', (req, res) => {
   res.send(`
     <form action="/login" method="POST">
@@ -37,7 +32,6 @@ app.get('/', (req, res) => {
 app.post('/login', (req, res) => {
   const { usuario, password } = req.body;
   
-  // Consultamos si existe el usuario con esa contraseña (comprobando por nombre o por correo)
   const query = 'SELECT * FROM usuarios WHERE (nombre = ? COLLATE NOCASE OR correo = ? COLLATE NOCASE) AND password = ?';
 
   db.get(query, [usuario, usuario, password], (err, row) => {
