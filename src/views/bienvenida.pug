@@ -1,0 +1,14 @@
+extends layout
+
+block contenido
+  h1 ¡Acceso concedido!
+  p Bienvenido, 
+    strong= usuario.nombre
+    |  (Rol: #{usuario.rol})
+
+  if usuario.rol === 'admin'
+    p
+      a(href="/admin") Ir al panel de administración
+
+  br
+  a(href="/") Cerrar sesión

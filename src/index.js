@@ -5,6 +5,10 @@ const adminRoutes = require('./admin');
 
 const app = express();
 
+// Configuración de Pug como motor de plantillas
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
+
 // Conexión a la base de datos Database.db
 const dbPath = path.join(__dirname, 'Database.db');
 const db = new sqlite3.Database(dbPath, (err) => {
@@ -14,18 +18,13 @@ const db = new sqlite3.Database(dbPath, (err) => {
     console.log('Conectado a la base de datos Database.db');
   }
 });
+
 app.use(express.urlencoded({ extended: true }));
 app.use(adminRoutes);
 
+// Ruta GET principal: muestra el formulario de login usando index.pug
 app.get('/', (req, res) => {
-  res.send(`
-    <form action="/login" method="POST">
-      <h2>Iniciar Sesión</h2>
-      <input type="text" name="usuario" placeholder="Usuario o Correo" required><br><br>
-      <input type="password" name="password" placeholder="Contraseña" required><br><br>
-      <button type="submit">Entrar</button>
-    </form>
-  `);
+  res.render('index', { titulo: 'Iniciar Sesión' });
 });
 
 // Ruta POST para procesar las credenciales
@@ -41,19 +40,14 @@ app.post('/login', (req, res) => {
     }
 
     if (row) {
-      res.send(`
-        <h1>¡Acceso concedido!</h1>
-        <p>Bienvenido, <strong>${row.nombre}</strong> (Rol: ${row.rol})</p>
-        ${row.rol === 'admin' ? '<p><a href="/admin">Ir al panel de administración</a></p>' : ''}
-        <br>
-        <a href="/">Cerrar sesión</a>
-      `);
+      res.render('bienvenida', {
+        titulo: '¡Acceso concedido!',
+        usuario: row
+      });
     } else {
-      res.send(`
-        <h1>Usuario o contraseña incorrectos</h1>
-        <br>
-        <a href="/">Volver a intentar</a>
-      `);
+      res.render('error', {
+        titulo: 'Error de acceso'
+      });
     }
   });
 });
