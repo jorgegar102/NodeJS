@@ -4,6 +4,11 @@ const path = require('path');
 const adminRoutes = require('./admin');
 
 const app = express();
+const port = 3000;
+
+// Configuración de Pug como motor de plantillas
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
 
 // Conexión a la base de datos Database.db
 const dbPath = path.join(__dirname, 'Database.db');
@@ -15,65 +20,35 @@ const db = new sqlite3.Database(dbPath, (err) => {
   }
 });
 
-// Middleware para leer los datos del formulario enviados por POST
+// Middlewares
 app.use(express.urlencoded({ extended: true }));
-
-// IMPORTANTE: Servir archivos estáticos (para que se vean las fotos subidas en la carpeta public)
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/admin', adminRoutes);
 
-// --- 1. PARTE DEL LOGIN ---
+// Ruta GET principal: muestra el formulario de login usando index.pug
 app.get('/', (req, res) => {
-  res.send(`
-    <div style="font-family: Arial; margin: 40px;">
-      <form action="/login" method="POST">
-        <h2>Iniciar Sesión</h2>
-        <input type="text" name="usuario" placeholder="Usuario o Correo" required style="padding: 8px;"><br><br>
-        <input type="password" name="password" placeholder="Contraseña" required style="padding: 8px;"><br><br>
-        <button type="submit" style="padding: 8px 15px; background: #007bff; color: white; border: none; cursor: pointer;">Entrar</button>
-      </form>
-    </div>
-  `);
+  res.render('index', { titulo: 'Iniciar Sesión' });
 });
 
+// Ruta POST para procesar las credenciales
 app.post('/login', (req, res) => {
   const { usuario, password } = req.body;
-  
-  // Consultamos si existe el usuario con esa contraseña (comprobando por nombre o por correo)
-  const query = 'SELECT * FROM usuarios WHERE (nombre = ? COLLATE NOCASE OR correo = ? COLLATE NOCASE) AND password = ?';
+  const sql = 'select * from usuarios where (nombre = ? or correo = ?) and password = ?';
 
-  db.get(query, [usuario, usuario, password], (err, row) => {
+  db.get(sql, [usuario, usuario, password], (err, row) => {
     if (err) {
-      console.error('Error al consultar la base de datos:', err.message);
-      return res.status(500).send('<h1>Error interno del servidor</h1>');
+      return res.render('error', { titulo: 'Error', mensaje: 'Error en la base de datos' });
     }
-
-    if (row) {
-      res.send(`
-        <div style="font-family: Arial; margin: 40px;">
-          <h1>¡Acceso concedido!</h1>
-          <p>Bienvenido, <strong>${row.nombre}</strong> (Rol: ${row.rol})</p>
-          ${row.rol === 'admin' ? '<p><a href="/admin">Ir al panel de administración</a></p>' : ''}
-          <br>
-          <a href="/">Cerrar sesión</a>
-        </div>
-      `);
-    } else {
-      res.send(`
-        <div style="font-family: Arial; margin: 40px;">
-          <h1>Usuario o contraseña incorrectos</h1>
-          <br>
-          <a href="/">Volver a intentar</a>
-        </div>
-      `);
+    if (!row) {
+      return res.render('error', { titulo: 'Error', mensaje: 'Usuario o contraseña incorrectos' });
     }
+    if (row.rol === 'admin') {
+      return res.redirect('/admin');
+    }
+    res.render('bienvenida', { titulo: 'Bienvenida', usuario: row });
   });
 });
 
-// --- 2. CONECTAR EL PANEL DE ADMINISTRADOR ---
-// Aquí montamos el módulo de admin bajo la ruta '/admin'
-app.use('/admin', adminRoutes);
-
-// Iniciar el servidor en el puerto 3000
-app.listen(3000, () => {
-  console.log('Servidor iniciado en http://localhost:3000');
+app.listen(port, () => {
+  console.log(`Servidor escuchando en http://localhost:${port}`);
 });
