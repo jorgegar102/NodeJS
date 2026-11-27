@@ -1,0 +1,41 @@
+extends layout
+
+block contenido
+  h1 Grupos
+  a.enlace-volver(href="/admin") ← Volver al panel
+
+  if grupoEditar
+    h2 Editar grupo ##{grupoEditar.id_grupo}
+    form.formulario(action="/admin/grupos/editar/" + grupoEditar.id_grupo, method="POST")
+      input(type="text", name="nombre", value=grupoEditar.nombre, placeholder="Nombre del grupo", required)
+      input(type="text", name="descripcion", value=grupoEditar.descripcion, placeholder="Descripción", required)
+      .menu-botones
+        button.btn.btn-verde(type="submit") Guardar cambios
+        a.enlace-volver(href="/admin/grupos") Cancelar
+  else
+    h2 Crear grupo
+    form.formulario(action="/admin/grupos/crear", method="POST")
+      input(type="text", name="nombre", placeholder="Nombre del grupo", required)
+      input(type="text", name="descripcion", placeholder="Descripción", required)
+      button.btn.btn-verde(type="submit") Crear grupo
+
+  h2 Listado de grupos
+  table.tabla
+    tr
+      th ID
+      th Nombre
+      th Descripción
+      th Acciones
+    if grupos && grupos.length
+      each g in grupos
+        tr
+          td= g.id_grupo
+          td= g.nombre
+          td= g.descripcion
+          td
+            a(href="/admin/grupos?editar=" + g.id_grupo) Editar
+            |  | 
+            a.enlace-borrar(href="/admin/grupos/eliminar/" + g.id_grupo, onclick="return confirm('¿Borrar grupo?')") Borrar
+    else
+      tr
+        td(colspan="4") No hay grupos.

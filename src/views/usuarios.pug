@@ -1,0 +1,90 @@
+extends layout
+
+block contenido
+  h1 Usuarios
+  a.enlace-volver(href="/admin") ← Volver al panel
+
+  if usuarioEditar
+    h2 Editar usuario ##{usuarioEditar.id_usuario}
+    form.formulario(action="/admin/usuarios/editar/" + usuarioEditar.id_usuario, method="POST", enctype="multipart/form-data")
+      input(type="text", name="nombre", value=usuarioEditar.nombre, placeholder="Nombre", required)
+      input(type="text", name="apellido1", value=usuarioEditar.apellido1, placeholder="Primer apellido", required)
+      input(type="text", name="apellido2", value=usuarioEditar.apellido2, placeholder="Segundo apellido", required)
+      input(type="date", name="fecha_nacimiento", value=usuarioEditar.fecha_nacimiento, required)
+      input(type="email", name="correo", value=usuarioEditar.correo, placeholder="Correo", required)
+      input(type="password", name="password", placeholder="Nueva contraseña (dejar vacío para mantener)")
+      input(type="text", name="telefono", value=usuarioEditar.telefono, placeholder="Teléfono", required)
+      input(type="number", name="edad", value=usuarioEditar.edad, placeholder="Edad", required)
+      label Foto actual:
+      if usuarioEditar.foto
+        img.avatar(src="/" + usuarioEditar.foto, alt="Foto actual")
+      else
+        | Sin foto
+      label Cambiar foto:
+      input(type="file", name="foto", accept="image/png, image/jpeg, image/webp")
+      label Grupo:
+      select(name="id_grupo", required)
+        if grupos && grupos.length
+          each g in grupos
+            option(value=g.id_grupo, selected=(Number(usuarioEditar.id_grupo) === Number(g.id_grupo)))= g.nombre
+        else
+          option(value="") Crea un grupo primero
+      .menu-botones
+        button.btn.btn-azul(type="submit") Guardar cambios
+        a.enlace-volver(href="/admin/usuarios") Cancelar
+  else
+    h2 Crear usuario
+    form.formulario(action="/admin/usuarios/crear", method="POST", enctype="multipart/form-data")
+      input(type="text", name="nombre", placeholder="Nombre", required)
+      input(type="text", name="apellido1", placeholder="Primer apellido", required)
+      input(type="text", name="apellido2", placeholder="Segundo apellido", required)
+      input(type="date", name="fecha_nacimiento", required)
+      input(type="email", name="correo", placeholder="Correo", required)
+      input(type="password", name="password", placeholder="Contraseña", required)
+      input(type="text", name="telefono", placeholder="Teléfono", required)
+      input(type="number", name="edad", placeholder="Edad", required)
+      label Foto:
+      input(type="file", name="foto", accept="image/png, image/jpeg, image/webp")
+      label Grupo:
+      select(name="id_grupo", required)
+        if grupos && grupos.length
+          each g in grupos
+            option(value=g.id_grupo)= g.nombre
+        else
+          option(value="") Crea un grupo primero
+      button.btn.btn-azul(type="submit") Añadir usuario
+
+  h2 Listado de usuarios
+  table.tabla
+    tr
+      th Foto
+      th Nombre
+      th Contacto
+      th Edad
+      th Grupo
+      th Acciones
+    if usuarios && usuarios.length
+      each u in usuarios
+        tr
+          td
+            if u.foto
+              img.avatar(src="/" + u.foto, alt="Foto")
+            else
+              | Sin foto
+          td #{u.nombre} #{u.apellido1} #{u.apellido2}
+          td
+            | #{u.correo}
+            br
+            small #{u.telefono}
+          td
+            | #{u.edad} años
+            br
+            small #{u.fecha_nacimiento}
+          td= u.nombre_grupo || u.id_grupo || "-"
+          td
+            a(href="/admin/usuarios?editar=" + u.id_usuario) Editar
+            |  | 
+            a.enlace-borrar(href="/admin/usuarios/eliminar/" + u.id_usuario, onclick="return confirm('¿Borrar usuario?')") Borrar
+    else
+      tr
+        td(colspan="6") No hay usuarios.

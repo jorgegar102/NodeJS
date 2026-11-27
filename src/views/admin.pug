@@ -1,0 +1,9 @@
+extends layout
+
+block contenido
+  h1 Panel de Administración
+  p Elige qué quieres gestionar:
+  .menu-botones
+    a.btn.btn-azul(href="/admin/usuarios") Usuarios
+    a.btn.btn-verde(href="/admin/grupos") Grupos
+  a.enlace-salir(href="/") Volver al login
