@@ -15,6 +15,10 @@ block contenido
       input(type="password", name="password", placeholder="Nueva contraseña (dejar vacío para mantener)")
       input(type="text", name="telefono", value=usuarioEditar.telefono, placeholder="Teléfono", required)
       input(type="number", name="edad", value=usuarioEditar.edad, placeholder="Edad", required)
+      label Rol:
+      select(name="rol", required)
+        option(value="usuario", selected=(usuarioEditar.rol === 'usuario')) Usuario
+        option(value="admin", selected=(usuarioEditar.rol === 'admin')) Admin
       label Foto actual:
       if usuarioEditar.foto
         img.avatar(src="/" + usuarioEditar.foto, alt="Foto actual")
@@ -23,12 +27,11 @@ block contenido
       label Cambiar foto:
       input(type="file", name="foto", accept="image/png, image/jpeg, image/webp")
       label Grupo:
-      select(name="id_grupo", required)
+      select(name="id_grupo")
+        option(value="") Sin grupo
         if grupos && grupos.length
           each g in grupos
             option(value=g.id_grupo, selected=(Number(usuarioEditar.id_grupo) === Number(g.id_grupo)))= g.nombre
-        else
-          option(value="") Crea un grupo primero
       .menu-botones
         button.btn.btn-azul(type="submit") Guardar cambios
         a.enlace-volver(href="/admin/usuarios") Cancelar
@@ -43,15 +46,18 @@ block contenido
       input(type="password", name="password", placeholder="Contraseña", required)
       input(type="text", name="telefono", placeholder="Teléfono", required)
       input(type="number", name="edad", placeholder="Edad", required)
+      label Rol:
+      select(name="rol", required)
+        option(value="usuario") Usuario
+        option(value="admin") Admin
       label Foto:
       input(type="file", name="foto", accept="image/png, image/jpeg, image/webp")
       label Grupo:
-      select(name="id_grupo", required)
+      select(name="id_grupo")
+        option(value="") Sin grupo
         if grupos && grupos.length
           each g in grupos
             option(value=g.id_grupo)= g.nombre
-        else
-          option(value="") Crea un grupo primero
       button.btn.btn-azul(type="submit") Añadir usuario
 
   h2 Listado de usuarios
@@ -61,6 +67,7 @@ block contenido
       th Nombre
       th Contacto
       th Edad
+      th Rol
       th Grupo
       th Acciones
     if usuarios && usuarios.length
@@ -80,6 +87,7 @@ block contenido
             | #{u.edad} años
             br
             small #{u.fecha_nacimiento}
+          td= u.rol || 'usuario'
           td= u.nombre_grupo || u.id_grupo || "-"
           td
             a(href="/admin/usuarios?editar=" + u.id_usuario) Editar
@@ -87,4 +95,4 @@ block contenido
             a.enlace-borrar(href="/admin/usuarios/eliminar/" + u.id_usuario, onclick="return confirm('¿Borrar usuario?')") Borrar
     else
       tr
-        td(colspan="6") No hay usuarios.
+        td(colspan="7") No hay usuarios.

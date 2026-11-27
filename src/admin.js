@@ -67,12 +67,15 @@ router.get('/usuarios', (req, res) => {
 });
 
 router.post('/usuarios/crear', upload.single('foto'), (req, res) => {
-  const { nombre, apellido1, apellido2, fecha_nacimiento, correo, password, telefono, edad, id_grupo } = req.body;
+  const { nombre, apellido1, apellido2, fecha_nacimiento, correo, password, telefono, edad, rol, id_grupo } = req.body;
   const foto = req.file ? req.file.filename : null;
-  const sql = `insert into usuarios (nombre, apellido1, apellido2, fecha_nacimiento, correo, password, telefono, edad, foto, id_grupo, rol)
-               values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'usuario')`;
+  const rolFinal = rol === 'admin' ? 'admin' : 'usuario';
+  const grupoFinal = id_grupo && id_grupo !== '' ? id_grupo : null;
 
-  db.run(sql, [nombre, apellido1, apellido2, fecha_nacimiento, correo, password, telefono, edad, foto, id_grupo], err => {
+  const sql = `insert into usuarios (nombre, apellido1, apellido2, fecha_nacimiento, correo, password, telefono, edad, foto, id_grupo, rol)
+               values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+  db.run(sql, [nombre, apellido1, apellido2, fecha_nacimiento, correo, password, telefono, edad, foto, grupoFinal, rolFinal], err => {
     if (err) return res.status(400).send('Error al crear usuario: ' + err.message);
     res.redirect('/admin/usuarios');
   });
@@ -80,20 +83,22 @@ router.post('/usuarios/crear', upload.single('foto'), (req, res) => {
 
 router.post('/usuarios/editar/:id', upload.single('foto'), (req, res) => {
   const id = req.params.id;
-  const { nombre, apellido1, apellido2, fecha_nacimiento, correo, password, telefono, edad, id_grupo } = req.body;
+  const { nombre, apellido1, apellido2, fecha_nacimiento, correo, password, telefono, edad, rol, id_grupo } = req.body;
 
   db.get('select * from usuarios where id_usuario = ?', [id], (err, actual) => {
     if (err || !actual) return res.status(404).send('Usuario no encontrado');
 
     const nuevaFoto = req.file ? req.file.filename : actual.foto;
     const nuevaPassword = password && password.trim() !== '' ? password : actual.password;
+    const rolFinal = rol === 'admin' ? 'admin' : 'usuario';
+    const grupoFinal = id_grupo && id_grupo !== '' ? id_grupo : null;
 
     const sql = `update usuarios
                  set nombre = ?, apellido1 = ?, apellido2 = ?, fecha_nacimiento = ?,
-                     correo = ?, password = ?, telefono = ?, edad = ?, foto = ?, id_grupo = ?
+                     correo = ?, password = ?, telefono = ?, edad = ?, foto = ?, id_grupo = ?, rol = ?
                  where id_usuario = ?`;
 
-    db.run(sql, [nombre, apellido1, apellido2, fecha_nacimiento, correo, nuevaPassword, telefono, edad, nuevaFoto, id_grupo, id], errUp => {
+    db.run(sql, [nombre, apellido1, apellido2, fecha_nacimiento, correo, nuevaPassword, telefono, edad, nuevaFoto, grupoFinal, rolFinal, id], errUp => {
       if (errUp) return res.status(400).send('Error al actualizar usuario: ' + errUp.message);
       res.redirect('/admin/usuarios');
     });
